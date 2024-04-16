@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import rclpy
+import Time
 from rclpy.node import Node
 from std_msgs.msg import String
 
@@ -17,8 +18,11 @@ class DeadReckoningNav(Node):
             velocidad = Twist()
             velocidad.linear.x = speed_comand[0]
             velocidad.angular.z = speed_comand[1]
-            self.get_logger().info("publicando velocidad (%f, %f)" % (lin_speed, ang_speed))
-            self.timer = self.create_timer(speed_comand[2], self.vel_publisher.publish(velocidad))
+            timer = Time.time()
+            t = Time.time() + speed_comand[2]
+            while timer < t:
+                self.get_logger().info("publicando velocidad (%f, %f)" % (lin_speed, ang_speed))
+                self.vel_publisher.publish(velocidad)
 
     def mover_robot_a_destino(self, goal_pose, odom):
         x = odom.pose.pose.position.x
@@ -32,27 +36,28 @@ class DeadReckoningNav(Node):
         pose_actual = (x,y,yaw)
         lista_comandos_vel = []
 
-        if pose_actual[0] < goal_pose[0]:
-            t = (goal_pose[0] - pose_actual[0])/self.linear_vel
-            comando = (self.linear_vel, 0, t)
-            lista_comandos_vel.append(comando)
-        else if pose_actual[0] > goal_pose[0]:
-            comando = (0, self.angular_vel, 1)
-            lista_comandos_vel.append(comando)
-            t = (pose_actual[0] - goal_pose[0])/self.linear_vel
-            comando = (self.linear_vel, 0, t)
+        distancia_x = goal_pose[0] - pose_actual[0]
+        distancia_y = goal_pose[1] - pose_actual[1]
+        distancia_theta = goal_pose[2] - pose_actual[2]
 
-       """ if pose_actual[1] < goal_pose[1]:
-            t = (goal_pose[0] - pose_actual[0])/self.linear_vel
+        if distancia_x != 0:
+            t = distancia_x/self.linear_vel
             comando = (self.linear_vel, 0, t)
-            lista_comandos_vel.append(comando)
-        else if pose_actual[0] > goal_pose[0]:
-            comando = (0, self.angular_vel, 1)
-            lista_comandos_vel.append(comando)
-            t = (pose_actual[0] - goal_pose[0])/self.linear_vel
-            comando = (self.linear_vel, 0, t) """
+            comando.append(comando)
+        if distancia_y != 0:
+            t = distancia_y/self.linear_vel
+            comando = (self.linear_vel, 0, t)
+            comando.append(comando)
+        if distancia_theta != 0:
+            t = distancia_theta/self.angular_vel
+            comando = (0, self.angular_vel, t)
+            comando.append(comando)
             
-
+        self.aplicar_velocidad(lista_comandos_vel)
+            
+    def accion_mover_cb(self, goal_list):
+        for pose in goal_list:
+            self.mover_robot_a_destino(pose)
 
 
 def main(args=None):
