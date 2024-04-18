@@ -46,7 +46,17 @@ def divide_vision(current_cv_depth_image):
     return [min_left, min_central, min_right]
 
 
-if __name__ == '__main__':
+def main(args=None):
     rclpy.init()
     obstacle_detector = Obstacle_Detector()
     rclpy.spin(obstacle_detector)
+
+    # Destroy the node explicitly
+    # (optional - otherwise it will be done automatically
+    # when the garbage collector destroys the node object)
+    obstacle_detector.destroy_node()
+    rclpy.shutdown()
+
+
+if __name__ == '__main__':
+    main()
