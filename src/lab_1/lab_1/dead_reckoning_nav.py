@@ -1,62 +1,68 @@
 #!/usr/bin/env python3
 import rclpy
-import Time
+import time
 from rclpy.node import Node
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
+from geometry_msgs.msg import Point, Quaternion, Pose, PoseArray
+from tf_transformations import euler_from_quaternion
 
 class DeadReckoningNav(Node):
 
     def __init__(self):
         super().__init__('dead_reckoning_nav')
         self.vel_publisher = self.create_publisher(Twist, "/cmd_vel_mux/input/navigation", 10)
-        self.odom_sub = self.create_subscription( Odometry, '/odom', self.mover_robot_a_destino, 10)
+        self.cb_sub = self.create_subscription(PoseArray, 'goal_list', self.accion_mover_cb, 10)
         self.linear_vel = 0.2 #m/s
-        self.angular_vel = 1 #rad/s
+        self.angular_vel = 1.0 #rad/s
     
     def aplicar_velocidad(self, speed_command_list):
         for speed_comand in speed_command_list:
             velocidad = Twist()
             velocidad.linear.x = speed_comand[0]
             velocidad.angular.z = speed_comand[1]
-            timer = Time.time()
-            t = Time.time() + speed_comand[2]
-            while timer < t:
-                self.get_logger().info("publicando velocidad (%f, %f)" % (lin_speed, ang_speed))
+            t = time.time() + speed_comand[2]
+            while time.time() < t:
+                self.get_logger().info("publicando velocidad (%f, %f) por %f s" % (velocidad.linear.x, velocidad.angular.z, speed_comand[2]))
                 self.vel_publisher.publish(velocidad)
 
-    def mover_robot_a_destino(self, goal_pose, odom):
-        x = odom.pose.pose.position.x
-        y = odom.pose.pose.position.y
-        z = odom.pose.pose.position.z
-        roll, pitch, yaw = euler_from_quaternion((odom.pose.pose.orientation.x,
-        odom.pose.pose.orientation.y,
-        odom.pose.pose.orientation.z,
-        odom.pose.pose.orientation.w))
-
-        pose_actual = (x,y,yaw)
+    def mover_robot_a_destino(self, goal_pose):
+        
+        distancia_x = goal_pose.position.x
+        distancia_y = goal_pose.position.y
+        roll, pitch, yaw =  euler_from_quaternion( ( goal_pose.orientation.x,
+                                                     goal_pose.orientation.y,
+                                                     goal_pose.orientation.z,
+                                                     goal_pose.orientation.w ) )
+        distancia_theta = yaw
         lista_comandos_vel = []
 
-        distancia_x = goal_pose[0] - pose_actual[0]
-        distancia_y = goal_pose[1] - pose_actual[1]
-        distancia_theta = goal_pose[2] - pose_actual[2]
+        if distancia_x != 0.0:
+            if distancia_x < 0.0:
+                comando = (0.0, self.angular_vel, 1.0)
+            t = abs(distancia_x/self.linear_vel)
+            comando = (self.linear_vel, 0.0, t)
+            lista_comandos_vel.append(comando)
 
-        if distancia_x != 0:
-            t = distancia_x/self.linear_vel
-            comando = (self.linear_vel, 0, t)
-            comando.append(comando)
-        if distancia_y != 0:
-            t = distancia_y/self.linear_vel
-            comando = (self.linear_vel, 0, t)
-            comando.append(comando)
-        if distancia_theta != 0:
-            t = distancia_theta/self.angular_vel
-            comando = (0, self.angular_vel, t)
-            comando.append(comando)
+        if distancia_y != 0.0:
+            if distancia_y < 0.0:
+                comando = (0.0, self.angular_vel, 1.0)
+            t = abs(distancia_y/self.linear_vel)
+            comando = (self.linear_vel, 0.0, t)
+            lista_comandos_vel.append(comando)
+
+        if distancia_theta != 0.0:
+            t = abs(distancia_theta/self.angular_vel)
+            if distancia_theta < 0.0:
+                comando = (0.0, -self.angular_vel, t)
+            else:
+                comando = (0.0, self.angular_vel, t)
+            lista_comandos_vel.append(comando)
             
         self.aplicar_velocidad(lista_comandos_vel)
             
     def accion_mover_cb(self, goal_list):
-        for pose in goal_list:
+        for pose in goal_list.poses:
             self.mover_robot_a_destino(pose)
 
 

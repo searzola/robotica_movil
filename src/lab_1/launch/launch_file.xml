@@ -1,0 +1,4 @@
+<launch>
+<node pkg="lab_1" exec="dead_reckoning_nav_node" name="dead_reckoning_nav" />
+<node pkg="lab_1" exec="pose_loader_node" name="pose_loader" />
+</launch>
