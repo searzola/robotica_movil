@@ -24,6 +24,8 @@ setup(
         'console_scripts': [
             "dead_reckoning_nav_node = lab_1.dead_reckoning_nav:main",
             "pose_loader_node = lab_1.pose_loader:main",
+            "dead_reckoning_nav_obs_node = lab_1.dead_reckoning_nav_obs:main",
+            "obstacle_detector_node = lab_1.obstacle_detector:main",
         ],
     },
 )

@@ -13,7 +13,7 @@ class PoseLoader(Node):
         self.publish_poses()
     
     def publish_poses(self):
-        poses_text = open ("labs_robotica_movil/src/lab_1/lab_1/poses.txt", "r") #formato de .txt 0.0,0.0,0.0\n
+        poses_text = open ("robotica_movil/src/lab_1/lab_1/poses.txt", "r") #formato de .txt 0.0,0.0,0.0\n
         poses_string = poses_text.read()
         poses_list = poses_string.split("\n")
         for pose in poses_list:
