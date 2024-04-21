@@ -15,6 +15,7 @@ class DeadReckoningNav(Node):
         self.cb_sub = self.create_subscription(PoseArray, 'goal_list', self.accion_mover_cb, 10)
         self.linear_vel = 0.2 #m/s
         self.angular_vel = 1.0 #rad/s
+        self.factor_correccion = 1.105
         self.obs_detectado = False
     
     def aplicar_velocidad(self, speed_command_list):
@@ -43,20 +44,20 @@ class DeadReckoningNav(Node):
 
         if distancia_x != 0.0:
             if distancia_x < 0.0:
-                comando = (0.0, self.angular_vel, 1)
+                comando = (0.0, self.angular_vel, 1*self.factor_correccion)
             t = abs(distancia_x/self.linear_vel)
             comando = (self.linear_vel, 0.0, t)
             lista_comandos_vel.append(comando)
 
         if distancia_y != 0.0:
             if distancia_y < 0.0:
-                comando = (0.0, self.angular_vel, 1)
+                comando = (0.0, self.angular_vel, 1*self.factor_correccion)
             t = abs(distancia_y/self.linear_vel)
             comando = (self.linear_vel, 0.0, t)
             lista_comandos_vel.append(comando)
 
         if distancia_theta != 0.0:
-            t = abs(distancia_theta/self.angular_vel) * 1.105 #factor de correccción
+            t = abs(distancia_theta/self.angular_vel) * self.factor_correccion #factor de correccción
             if distancia_theta < 0.0:
                 comando = (0.0, -self.angular_vel, t)
             else:

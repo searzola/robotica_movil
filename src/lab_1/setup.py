@@ -26,7 +26,7 @@ setup(
             "pose_loader_node = lab_1.pose_loader:main",
             "dead_reckoning_nav_obs_node = lab_1.dead_reckoning_nav_obs:main",
             "obstacle_detector_node = lab_1.obstacle_detector:main",
-            "dead_reckoning_nav_factor_kinet_node = lab_1.dead_reckoning_nav_factor_kinet:main"
+            "dead_reckoning_nav_real_odom_factor_node = lab_1.dead_reckoning_nav_real_odom_factor:main"
         ],
     },
 )
