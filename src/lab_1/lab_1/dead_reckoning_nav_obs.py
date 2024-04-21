@@ -45,8 +45,8 @@ class DeadReckoningNav(Node):
                         detenido = False
                     velocidad.linear.x = speed_comand[0]
                     velocidad.angular.z = speed_comand[1]
-                    #self.get_logger().info("publicando velocidad (%f, %f) por %f s" % (velocidad.linear.x, velocidad.angular.z, speed_comand[2]))
                     self.vel_publisher.publish(velocidad)
+                time.sleep(0.05)
 
                 
 
@@ -54,8 +54,6 @@ class DeadReckoningNav(Node):
         izquierda = ocupancy_state.x
         centro = ocupancy_state.y
         derecha = ocupancy_state.z
-        self.obs_detectado = False
-        #self.get_logger().info("deteccion de obstaculos (%f, %f, %f)" % (izquierda, centro, derecha))
 
         if centro == 1.0:
             self.get_logger().info("obstacle center")
@@ -106,7 +104,7 @@ class DeadReckoningNav(Node):
         self.aplicar_velocidad(lista_comandos_vel)
             
     def accion_mover_cb(self, goal_list):
-        thread = threading.Thread(target=self.thread_movimiento, args=(goal_list,), daemon=True)
+        thread = threading.Thread(target=self.thread_movimiento, args=(goal_list,))
         thread.start()
         return
     

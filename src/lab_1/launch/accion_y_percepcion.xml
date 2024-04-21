@@ -1,5 +1,5 @@
 <launch>
+<node pkg="lab_1" exec="obstacle_detector_node" name="obstacle_detector" />
 <node pkg="lab_1" exec="dead_reckoning_nav_obs_node" name="dead_reckoning_nav_obs" />
 <node pkg="lab_1" exec="pose_loader_node" name="pose_loader" />
-<node pkg="lab_1" exec="obstacle_detector_node" name="obstacle_detector" />
 </launch>

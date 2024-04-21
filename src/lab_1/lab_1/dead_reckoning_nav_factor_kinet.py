@@ -51,7 +51,7 @@ class DeadReckoningNav(Node):
                     tiempo_detenido = 0
                     velocidad.linear.x = speed_comand[0]
                     velocidad.angular.z = speed_comand[1]
-                    self.get_logger().info("publicando velocidad (%f, %f) por %f s" % (velocidad.linear.x, velocidad.angular.z, speed_comand[2]))
+                    #self.get_logger().info("publicando velocidad (%f, %f) por %f s" % (velocidad.linear.x, velocidad.angular.z, speed_comand[2]))
                     self.vel_publisher.publish(velocidad)
 
     def mover_robot_a_destino(self, goal_pose):
