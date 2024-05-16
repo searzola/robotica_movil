@@ -7,18 +7,15 @@ from geometry_msgs.msg import Twist, Vector3
 from geometry_msgs.msg import Point, Quaternion, Pose, PoseArray
 from tf_transformations import euler_from_quaternion
 
-import threading
-
 class DeadReckoningNav(Node):
 
     def __init__(self):
-        super().__init__('dead_reckoning_nav_obs')
+        super().__init__('dead_reckoning_nav')
         self.vel_publisher = self.create_publisher(Twist, "/cmd_vel_mux/input/navigation", 10)
         self.cb_sub = self.create_subscription(PoseArray, 'goal_list', self.accion_mover_cb, 10)
-        self.cb_obstacle_sub = self.create_subscription(Vector3, '/occupancy_state', self.deteccion_obstaculo, 10)
         self.linear_vel = 0.2 #m/s
         self.angular_vel = 1.0 #rad/s
-        self.factor_correccion = 1.0922
+        self.factor_correccion = 1.105
         self.obs_detectado = False
     
     def aplicar_velocidad(self, speed_command_list):
@@ -27,46 +24,12 @@ class DeadReckoningNav(Node):
             velocidad.linear.x = speed_comand[0]
             velocidad.angular.z = speed_comand[1]
             t = time.time() + speed_comand[2]
-            tiempo_tiempo_inicio_detencion= 0
-            tiempo_detenido = 0
-            detenido = False
-            while time.time() < t or detenido:
-                if self.obs_detectado:
-                    if detenido == False:
-                        tiempo_inicio_detencion = time.time()
-                    detenido = True
-                    tiempo_detenido = time.time()
-                    velocidad.linear.x = 0.0
-                    velocidad.angular.z = 0.0
-                    self.vel_publisher.publish(velocidad)
-                else:
-                    if detenido == True:
-                        t += tiempo_detenido - tiempo_inicio_detencion
-                        detenido = False
-                    velocidad.linear.x = speed_comand[0]
-                    velocidad.angular.z = speed_comand[1]
-                    self.vel_publisher.publish(velocidad)
-                time.sleep(0.05)
-
-                
-
-    def deteccion_obstaculo(self, ocupancy_state):
-        izquierda = ocupancy_state.x
-        centro = ocupancy_state.y
-        derecha = ocupancy_state.z
-
-        if centro == 1.0:
-            self.get_logger().info("obstacle center")
-            self.obs_detectado = True
-        elif izquierda == 1.0:
-            self.get_logger().info("obstacle left")
-            self.obs_detectado = True
-        elif derecha == 1.0:
-            self.get_logger().info("obstacle right")
-            self.obs_detectado = True
-        else:
-            self.obs_detectado = False
-
+            tiempo_actual = time.time()
+            while time.time() < t:
+                velocidad.linear.x = speed_comand[0]
+                velocidad.angular.z = speed_comand[1]
+                self.get_logger().info("publicando velocidad (%f, %f) por %f s" % (velocidad.linear.x, velocidad.angular.z, speed_comand[2]))
+                self.vel_publisher.publish(velocidad)
 
     def mover_robot_a_destino(self, goal_pose):
         
@@ -104,15 +67,8 @@ class DeadReckoningNav(Node):
         self.aplicar_velocidad(lista_comandos_vel)
             
     def accion_mover_cb(self, goal_list):
-        thread = threading.Thread(target=self.thread_movimiento, args=(goal_list,))
-        thread.start()
-        return
-    
-    def thread_movimiento(self, goal_list):
         for pose in goal_list.poses:
             self.mover_robot_a_destino(pose)
-    
-    
 
 
 def main(args=None):

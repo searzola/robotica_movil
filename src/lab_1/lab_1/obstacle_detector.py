@@ -28,7 +28,7 @@ class Obstacle_Detector(Node):
 def obstacles(min_distancias):
     vector_obstacles = []
     for ele in min_distancias:
-        if ele <= 0.5 or str(ele) == "nan":
+        if ele <= 0.8 or str(ele) == "nan":
             vector_obstacles.append(1.0)
         else:
             vector_obstacles.append(0.0)
