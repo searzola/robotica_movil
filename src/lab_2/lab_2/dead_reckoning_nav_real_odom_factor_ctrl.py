@@ -50,6 +50,14 @@ class DeadReckoningNav(Node):
         self.last_pose = [[0.0, 0.0, 0.0]]
         self.actual_pose_index = 0
 
+        self.init_time = 0.0
+        self.linear_setpoint = 0.0
+        self.list_linear_time = []
+        self.list_linear_actual_state = []
+        self.list_linear_setpoint = []
+        self.list_linear_control_effort = []
+
+
     def aplicar_velocidad(self, speed_command_list):
         for speed_comand in speed_command_list:
             self.get_logger().info( "Comandos x: %f z: %f" % (speed_comand[0], speed_comand[1]))
@@ -58,6 +66,7 @@ class DeadReckoningNav(Node):
                 linear_setpoint_msg = Float64()
                 linear_state_msg = Float64()
                 linear_setpoint_msg.data = float(speed_comand[0])
+                self.linear_setpoint = float(speed_comand[0])
                 while self.linear_setpoint_publisher.get_subscription_count() == 0:
                     if self.linear_setpoint_publisher.get_subscription_count() > 0:
                         break
@@ -65,12 +74,14 @@ class DeadReckoningNav(Node):
                 linear_state_msg.data = self.actual_state
                 self.linear_setpoint_publisher.publish(linear_setpoint_msg)
                 self.linear_state_publisher.publish(linear_state_msg)
+                self.init_time = time.time()
                 while True: 
                     #self.get_logger().info( 'Actual state: %f , linear_state_x: %f, linear_state_y: %f,  Setpoint: %f' % (self.actual_state, self.linear_state_x, self.linear_state_y, speed_comand[0]))
                     if float(speed_comand[0]) - float(round(self.actual_state, 2)) < 0.0001:
                         self.get_logger().info( 'Linear setpoint reached')
                         self.linear_publish = False
                         break
+
             elif speed_comand[1] != 0.0:
                 self.angular_publish = True
                 angular_setpoint_msg = Float64()
@@ -102,6 +113,15 @@ class DeadReckoningNav(Node):
         self.vel_publisher.publish(velocidad)
         self.actual_state = np.sqrt((self.linear_state_x - self.last_pose[self.actual_pose_index][0])**2+(self.linear_state_y - self.last_pose[self.actual_pose_index][1])**2)
         state_msg.data = self.actual_state
+
+        if self.actual_pose_index == 0:
+            actual_time = time.time() - self.init_time
+            self.list_linear_time.append(actual_time)
+            self.list_linear_actual_state.append(self.actual_state)
+            self.list_linear_control_effort.append(comando_vel)
+            self.list_linear_setpoint.append(self.linear_setpoint)
+            #self.get_logger().info( 't: %f, setpoint: %f' % (actual_time, float(speed_comand[0])) )
+
         if self.linear_publish:
             self.linear_state_publisher.publish(state_msg)
 
@@ -208,12 +228,21 @@ class DeadReckoningNav(Node):
         real_pose_y = real_pose[1::2]
         odom_pose_x = odom_pose[::2]
         odom_pose_y = odom_pose[1::2]
-        plt.plot(real_pose_x, real_pose_y, label="real pose")
-        plt.plot(odom_pose_x, odom_pose_y, label="odom pose")
+        #plt.plot(real_pose_x, real_pose_y, label="real pose")
+        #plt.plot(odom_pose_x, odom_pose_y, label="odom pose")
+        #plt.legend(loc='upper center')
+        #plt.xlabel('Eje x')
+        #plt.ylabel('Eje y')
+        #plt.title('real v/s odom + factor')
+        #plt.show()
+
+        plt.plot(self.list_linear_time, self.list_linear_setpoint, label="setpoint")
+        plt.plot(self.list_linear_time, self.list_linear_actual_state, label="actual state")
+        plt.plot(self.list_linear_time, self.list_linear_control_effort, label="control effort")
         plt.legend(loc='upper center')
-        plt.xlabel('Eje x')
-        plt.ylabel('Eje y')
-        plt.title('real v/s odom + factor')
+        plt.xlabel('t (s)')
+        plt.ylabel('Magnitud')
+        plt.title('reference v/s actual state + control effort')
         plt.show()
 
 

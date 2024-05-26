@@ -24,8 +24,8 @@ setup(
         'console_scripts': [
             "pose_loader_node = lab_2.pose_loader:main",
             "dead_reckoning_nav_real_odom_factor_ctrl_node = lab_2.dead_reckoning_nav_real_odom_factor_ctrl:main",
-            "linear_p_controller_node = lab_2.linear_p_controller:main",
-            "angular_p_controller_node = lab_2.angular_p_controller:main"
+            "linear_pid_controller_node = lab_2.linear_pid_controller:main",
+            "angular_pid_controller_node = lab_2.angular_pid_controller:main"
         ],
     },
 )

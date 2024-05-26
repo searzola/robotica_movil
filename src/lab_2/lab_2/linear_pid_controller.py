@@ -6,16 +6,21 @@ from std_msgs.msg import Float64
 from std_msgs.msg import Empty
 
 
-class Linear_PController( Node ):
+class Linear_PIDController( Node ):
 
-  def __init__( self, kp, ki = 0, kd = 0 ):
-    super().__init__( 'linear_p_controller' )
-    self.kp = kp
-    self.ki = ki
+  def __init__( self, kd = 0 ):
+    super().__init__( 'linear_pid_controller' )
+    self.declare_parameter( 'kp', 0.5)
+    self.declare_parameter( 'ki', 0.0 )
+    self.kp = self.get_parameter( 'kp' ).value
+    self.ki = self.get_parameter( 'ki' ).value
+    self.get_logger().info( 'Kp = %.3f' % (self.kp) )
+    self.get_logger().info( 'Ki = %.3f' % (self.ki) )
     self.kd = kd
     self.setpoint = None
     self.state = None
     self.proportional_action = 0
+    self.cumulative_error = 0.0
 
     self.actuation_pub = self.create_publisher( Float64, 'control_effort', 1 )
     self.dist_set_point_sub = self.create_subscription( Float64, 'setpoint', self.setpoint_cb, 1 )
@@ -31,12 +36,13 @@ class Linear_PController( Node ):
       return
     self.state = msg.data
     error = self.setpoint - self.state
+    self.cumulative_error += error
 
     # Proportional
     p_actuation = self.kp*error
 
-    # Integrative (Implement me!)
-    i_actuation = self.ki*0
+    # Integrative
+    i_actuation = self.ki*self.cumulative_error
 
     # Derivative (Implement me!)
     d_actuation = self.kd*0
@@ -52,11 +58,12 @@ class Linear_PController( Node ):
   def reset( self ):
     self.setpoint = None
     self.state = None
+    self.cumulative_error = 0.0
 
 
 def main():
   rclpy.init()
-  lin_p_ctrl = Linear_PController( 0.5 )
+  lin_p_ctrl = Linear_PIDController()
   rclpy.spin( lin_p_ctrl )
 
 if __name__ == '__main__':

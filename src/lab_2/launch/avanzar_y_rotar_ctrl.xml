@@ -1,6 +1,12 @@
 <launch>
 <node pkg="lab_2" exec="dead_reckoning_nav_real_odom_factor_ctrl_node" name="dead_reckoning_nav_real_odom_factor_ctrl" />
 <node pkg="lab_2" exec="pose_loader_node" name="pose_loader" />
-<node pkg="lab_2" exec="linear_p_controller_node" name="linear_p_controller" />
-<node pkg="lab_2" exec="angular_p_controller_node" name="angular_p_controller" />
+<node pkg="lab_2" exec="linear_pid_controller_node" name="linear_pid_controller" >
+    <param name="kp" value="0.4" />
+    <param name="ki" value="0.0" />
+</node>
+<node pkg="lab_2" exec="angular_pid_controller_node" name="angular_pid_controller" >
+    <param name="kp" value="0.4" />
+    <param name="ki" value="0.0" />
+</node>
 </launch>
