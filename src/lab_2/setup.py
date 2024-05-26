@@ -1,4 +1,5 @@
 from setuptools import find_packages, setup
+from glob import glob
 
 package_name = 'lab_2'
 
@@ -10,6 +11,7 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name, glob('launch/*.xml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -20,6 +22,10 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            "pose_loader_node = lab_2.pose_loader:main",
+            "dead_reckoning_nav_real_odom_factor_ctrl_node = lab_2.dead_reckoning_nav_real_odom_factor_ctrl:main",
+            "linear_p_controller_node = lab_2.linear_p_controller:main",
+            "angular_p_controller_node = lab_2.angular_p_controller:main"
         ],
     },
 )
