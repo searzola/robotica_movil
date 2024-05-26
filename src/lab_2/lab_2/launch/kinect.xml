@@ -1,0 +1,3 @@
+<launch>
+<node pkg="kinect ros2" exec="kinect ros2 node" name="kinect ros2 node" namespace="kinect"/>
+</launch>
