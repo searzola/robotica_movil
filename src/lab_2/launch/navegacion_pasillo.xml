@@ -1,0 +1,5 @@
+<launch>
+<node pkg="lab_2" exec="wall_distance_node" name="wall_distance" />
+<node pkg="lab_2" exec="wall_controller_node" name="wall_p_controller" />
+<node pkg="lab_2" exec="wall_actuation_node" name="wall_actuation" />
+</launch>
