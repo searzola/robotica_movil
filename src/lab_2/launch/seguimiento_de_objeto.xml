@@ -1,6 +1,4 @@
 <launch>
-<include file="$(find-pkg-share kobuki node)/kobuki node-launch.py" />
-
 <node pkg="kinect ros2" exec="kinect ros2 node" name="kinect ros2 node" namespace="kinect"/>
 <node pkg="lab_2" exec="angular_pid_controller_node" name="angular_pid_controller" >
     <param name="kp" value="0.4" />
