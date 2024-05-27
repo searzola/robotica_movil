@@ -1,0 +1,6 @@
+<launch>
+<node pkg="kinect ros2" exec="kinect ros2 node" name="kinect ros2 node" namespace="kinect"/>
+<include file="$(find-pkg-share kobuki node)/launch/kobuki node-launch.py" />
+<node pkg="lab_2" exec="blue_watcher_node" name="blue_watcher" />
+<node pkg="lab_2" exec="blue_stalker_node" name="blue_stalker" />
+</launch>

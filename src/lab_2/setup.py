@@ -25,7 +25,9 @@ setup(
             "pose_loader_node = lab_2.pose_loader:main",
             "dead_reckoning_nav_real_odom_factor_ctrl_node = lab_2.dead_reckoning_nav_real_odom_factor_ctrl:main",
             "linear_pid_controller_node = lab_2.linear_pid_controller:main",
-            "angular_pid_controller_node = lab_2.angular_pid_controller:main"
+            "angular_pid_controller_node = lab_2.angular_pid_controller:main",
+            "blue_watcher_node = lab_2.blue_watcher:main",
+            "blue_stalker_node = lab_2.blue_stalker:main"
         ],
     },
 )

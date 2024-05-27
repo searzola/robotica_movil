@@ -15,7 +15,7 @@ class Blue_Stalker(Node):
         self.publisher_state = self.create_publisher(Float64, 'state', 10)
         self.blue_sub = self.create_subscription(Float64, '/blue_square_position', self.read_position, 10)
         self.control_p_sub = self.create_subscription(Float64, 'control_effort', self.velocida_angular, 10)
-        self.publisher_velocity = self.create_publisher(Twist, '/commands/velocity', 10)
+        self.publisher_velocity = self.create_publisher(Twist, "/cmd_vel_mux/input/navigation", 10)
 
     def read_position(self, data):
         self.blue_position = float(data.data)
