@@ -1,18 +1,23 @@
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import Vector3
 from geometry_msgs.msg import Twist
 from std_msgs.msg import Float64
 from cv_bridge import CvBridge
 import numpy as np
+import time
 from scipy.ndimage import convolve, gaussian_filter, median_filter
 import threading
 
+
+# Kp = 0.31
 
 class Obstacle_Detector2(Node):
     def __init__(self):
         super().__init__('obstacle_detector2')
         self.publisher_ref = self.create_publisher(Float64, 'setpoint', 10)
+        # self.ref = 0.3
         self.ref = 0.0
         msg = Float64()
         msg.data = float(self.ref)
@@ -30,8 +35,11 @@ class Obstacle_Detector2(Node):
 
     def depth_cb(self, data):
         self.current_cv_depth_image = self.bridge.imgmsg_to_cv2(data)
-        self.current_cv_depth_image = np.nan_to_num(self.current_cv_depth_image, nan=0.3)
+        # self.current_cv_depth_image = np.nan_to_num(self.current_cv_depth_image, nan=0.3)
+        self.current_cv_depth_image = np.nan_to_num(self.current_cv_depth_image, nan=0.0)
         L, R = divide_vision(self.current_cv_depth_image)
+        # coordenadas_bucles = encontrar_objeto_mas_cercano_bucles(self.current_cv_depth_image)
+        # coordenadas_numpy = encontrar_objeto_mas_cercano_optimizado(self.current_cv_depth_image)
 
         coordenadas_numpyR = encontrar_objeto_mas_cercano_optimizado(R)
         coordenadas_numpyL = encontrar_objeto_mas_cercano_optimizado(L)
@@ -40,12 +48,19 @@ class Obstacle_Detector2(Node):
         valor_minimoL = L[coordenadas_numpyL]
         xr = coordenadas_numpyR[1]
         xl = coordenadas_numpyL[1] -320
+        # self.get_logger().info('Publishing1: xr:"%.2f", yr:"%.2f" zr:"%.2f", xl:"%.2f", yl:"%.2f",zl:"%.2f"' % (coordenadas_numpyR[1], coordenadas_numpyR[0], valor_minimoR,xl, coordenadas_numpyL[0], valor_minimoL))
+        # self.get_logger().info('Publishing1: xr:"%.2f", zr:"%.2f", xl:"%.2f", zl:"%.2f"' % (xr, valor_minimoR, xl, valor_minimoL))
         thetar = (xr)*(28.5/320)
         xr = valor_minimoR*np.sin(np.deg2rad(thetar))
         thetal = (xl)*(28.5/320)
         xl = valor_minimoL*np.sin(np.deg2rad(thetal))
 
-        if self.ref == 0.3:
+        xr = np.mean(R)
+        xl = (np.mean(L))
+
+        # self.get_logger().info('Publishing2: xr:"%.2f", zr:"%.2f", xl:"%.2f", zl:"%.2f"' % (xr, valor_minimoR, xl, valor_minimoL))
+        ref = (xr - xl)
+        if self.ref == 5:
             ref = xr
             if ref > 0.3:
                 self.ref = 0.0
@@ -53,8 +68,8 @@ class Obstacle_Detector2(Node):
                 msg.data = float(self.ref)
                 self.publisher_ref.publish(msg)
                 ref = -(xr + xl)
-        elif self.ref == -0.3:
-            ref = xl
+        elif self.ref == -5:
+            ref = -xl
             if ref < -0.3:
                 self.ref = 0.0
                 msg = Float64()
@@ -62,26 +77,38 @@ class Obstacle_Detector2(Node):
                 self.publisher_ref.publish(msg)
                 ref = -(xr + xl)
         else:
-            ref = -(xr + xl)
+            ref = (xr - xl)
             if xl == 0.0 and xr == 0.0:
                 self.v_angular = 0.0
+                self.velo = 0.0
+                # ref = self.state
+                # if self.ref != 0.0:
+                #     self.ref = 0.0
+                # msg = Float64()
+                # msg.data = float(self.ref)
+                # self.publisher_ref.publish(msg)
             elif xr == 0.0:
+                # xr = 0.5
+                # ref = xl - 0.1
                 ref = xr
-                if self.ref != 0.3:
-                    self.ref = 0.3
+                if self.ref != 5:
+                    self.ref = 5
                     msg = Float64()
                     msg.data = float(self.ref)
                     self.publisher_ref.publish(msg)
             elif xl == 0.0:
-
-                ref = xl
-                if self.ref != -0.3:
-                    self.ref = -0.3
+                # xl = -0.5
+                # ref = xr + 0.1
+                ref = -xl
+                if self.ref != -5:
+                    self.ref = -5
                     msg = Float64()
                     msg.data = float(self.ref)
                     self.publisher_ref.publish(msg)
             else:
-                if self.ref != 0.0 and xr > 0.3 and xl < -0.3 and abs(self.state) > self.ref:
+                # self.velo = 0.05
+                # if self.ref != 0.0 and xr > 0.3 and xl < -0.3 and abs(self.state) > self.ref:
+                if self.ref != 0.0:
                     self.ref = 0.0
                     msg = Float64()
                     msg.data = float(self.ref)
@@ -96,19 +123,59 @@ class Obstacle_Detector2(Node):
             threat = threading.Thread(target=self.velocidad, daemon=True)
             threat.start()
         
+        # coordenadas1 = encontrar_concentracion_baja(self.current_cv_depth_image, tamano_kernel=10)
+
+        # matriz_suavizada = suavizar_matriz(self.current_cv_depth_image, sigma=1)
+        # umbral = np.percentile(self.current_cv_depth_image, 95)  # Ajustar el percentil según sea necesario
+        # matriz_sin_ruido = eliminar_ruido(matriz_suavizada, umbral)
+        # coordenadas2 = encontrar_concentracion_baja(matriz_sin_ruido, tamano_kernel=10)
+
+        # valor_minimo1 = self.current_cv_depth_image[coordenadas_bucles]
+        # valor_minimo2 = self.current_cv_depth_image[coordenadas_numpy]
+        # valor_minimo3 = self.current_cv_depth_image[coordenadas1]
+        # valor_minimo4 = self.current_cv_depth_image[coordenadas2]
+        #self.get_logger().info('Publishing: v1:"(%.2f ,%.2f)", v2:"(%.2f ,%.2f)", v3:"(%.2f ,%.2f)", v4:"(%.2f ,%.2f)"' % (coordenadas_bucles[0], coordenadas_bucles[1], coordenadas_numpy[0], coordenadas_numpy[1], coordenadas1[0], coordenadas1[1], coordenadas2[0], coordenadas2[1]))
+        # self.get_logger().info('Publishing: v1:"%.2f", v2:"%.2f", v3:"%.2f", v4:"%.2f"' % (valor_minimo1, valor_minimo2, valor_minimo3, valor_minimo4))
+        # self.get_logger().info('Publishing: x1:"%.2f", x2:"%.2f", x3:"%.2f", x4:"%.2f"' % (coordenadas_bucles[1]-320, coordenadas_numpy[1]-320, coordenadas1[1]-320, coordenadas2[1]-320))
+        # self.get_logger().info('Publishing: x1:"%.2f", x2:"%.2f", x3:"%.2f", x4:"%.2f"' % (coordenadas_bucles[0], coordenadas_numpy[0], coordenadas1[0], coordenadas2[0]))
+        # if valor_minimo2 <= 0.8:
+        #     theta = (coordenadas_numpy[1]-320)*(28.5/320)
+        #     x = valor_minimo2*np.sin(np.deg2rad(theta))
+        #     d = np.sqrt((x - 0)**2)
+        #     self.get_logger().info('Publishing: x1:"%.2f", min"%.2f", w:"%.2f", ref:"%.2f"'  % (x, valor_minimo2, self.v_angular, self.ref))
+        #     if x < 0 and self.ref != -0.3:
+        #         self.ref = -0.3
+        #         msg = Float64()
+        #         msg.data = float(self.ref)
+        #         self.publisher_ref.publish(msg)
+        #     elif x >= 0 and self.ref != 0.3:
+        #         self.ref = 0.3
+        #         msg = Float64()
+        #         msg.data = float(self.ref)
+        #         self.publisher_ref.publish(msg)
+        #     msg = Float64()
+        #     msg.data = float(x)
+        #     self.publisher_state.publish(msg)
+        # else:
+        #     self.v_angular = 0.0
+        # if self.start:
+        #     self.start = False
+        #     threat = threading.Thread(target=self.velocidad, daemon=True)
+        #     threat.start()
 
     def velocida_angular(self, dato):
         dato = float(dato.data)
-        if dato > 0:
-            v_angular = min(0.18, dato)
-        else:
-            v_angular = max(-0.18, dato)
-        # v_angular = dato
+        # if dato > 0:
+        #     v_angular = min(0.18, dato)
+        # else:
+        #     v_angular = max(-0.18, dato)
+        v_angular = dato
         self.v_angular = v_angular
 
     def velocidad(self):
         while True:
-            self.velo = self.velo_max - self.v_angular
+            #self.velo = self.velo_max - self.v_angular
+            self.velo = 0.2
             velocidad = Twist()
             velocidad.linear.x = self.velo
             velocidad.angular.z = self.v_angular
