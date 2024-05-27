@@ -28,6 +28,9 @@ setup(
             "angular_pid_controller_node = lab_2.angular_pid_controller:main",
             "blue_watcher_node = lab_2.blue_watcher:main",
             "blue_stalker_node = lab_2.blue_stalker:main"
+            "wall_distance_node = lab_2.wall_distance:main",
+            "wall_controller_node = lab_2.wall_controller:main",
+            "wall_actuation_node = lab_2.wall_actuation:main"
         ],
     },
 )
