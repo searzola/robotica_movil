@@ -30,7 +30,10 @@ setup(
             "blue_stalker_node = lab_2.blue_stalker:main",
             "wall_distance_node = lab_2.wall_distance:main",
             "wall_controller_node = lab_2.wall_controller:main",
-            "wall_actuation_node = lab_2.wall_actuation:main"
+            "wall_actuation_node = lab_2.wall_actuation:main",
+            "square_watcher_node = lab_2.square_watcher:main",
+            "square_photos_node = lab_2.square_photos:main",
+            "square_follower_node = lab_2.square_follower:main"
         ],
     },
 )
