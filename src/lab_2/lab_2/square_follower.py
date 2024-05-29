@@ -17,8 +17,9 @@ class Blue_Follower(Node):
         self.blue_sub = self.create_subscription(Float64, '/blue_square_position', self.p_controller, 10)
 
     def p_controller(self, data):
+        self.get_logger().info('Centro del cuadrado recibido')
         self.state = float(data.data)
-        error = self.reference.data - self.state
+        error = self.reference - self.state
         velocidad = Twist() 
         if abs(error) < 0.01: # Avanza linealmente
             velocidad.linear.x = self.linear_velocity
@@ -34,7 +35,7 @@ class Blue_Follower(Node):
 
 def main(args=None):
     rclpy.init()
-    blue_stalker = Blue_Follower(kp=0.3)
+    blue_stalker = Blue_Follower(kp=0.1)
     rclpy.spin(blue_stalker)
 
     # Destroy the node explicitly

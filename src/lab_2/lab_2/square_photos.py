@@ -3,6 +3,7 @@
 import cv2
 import numpy as np
 import os
+import time
 
 import rclpy
 from rclpy.node import Node
@@ -18,19 +19,20 @@ class Blue_Watcher(Node):
         super().__init__('square_photos')
         self.publisher_ = self.create_publisher(Image, 'blue_square_photos', 10)
         self.bridge = CvBridge()
-        self.path_1 = os.path.join("blue_square", "frame000220.png")
-        self.path_2 = os.path.join("blue_square", "frame000310.png")
-        self.path_3 = os.path.join("blue_square", "frame000470.png")
-        self.path_4 = os.path.join("blue_square", "frame000550.png")
-        self.path_5 = os.path.join("blue_square", "frame000640.png")
+        self.path_1 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000220.png")
+        self.path_2 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000310.png")
+        self.path_3 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000470.png")
+        self.path_4 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000550.png")
+        self.path_5 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000640.png")
 
-        self.send_pic(self.path_1) # Ir cambiando el path para probar cada posición
+        time.sleep(2)
+        self.send_pic(self.path_2) # Ir cambiando el path para probar cada posición
 
 
     def send_pic(self, path):
-        # self.get_logger().info('Publishing: "%s"' % data)
         cv_image = cv2.imread(path)
         self.current_img = self.bridge.cv2_to_imgmsg(cv_image)
+        self.get_logger().info('Enviando foto del cuadrado')
         self.publisher_.publish(self.current_img)
         
 

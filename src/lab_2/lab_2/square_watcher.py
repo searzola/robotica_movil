@@ -17,7 +17,7 @@ class Blue_Watcher(Node):
         super().__init__('square_watcher')
         self.publisher_ = self.create_publisher(Float64, '/blue_square_position', 10)
         # self.rgb_sub = self.create_subscription(Image, '/camera/rgb/image_color', self.detector_de_objeto, 10)
-        self.second_rgb_sub = self.create_subscription(Image, '/camera/rgb/image_color', self.detector_de_objeto, 10)
+        self.second_rgb_sub = self.create_subscription(Image, 'blue_square_photos', self.detector_de_objeto, 10)
         
         self.bridge = CvBridge()
         self.current_cv_rgb_image = None                             # 100
@@ -40,6 +40,7 @@ class Blue_Watcher(Node):
             threat.start()
 
     def detector_de_objeto(self, data):
+        self.get_logger().info('Foto recibida ')
         self.current_cv_rgb_image = self.bridge.imgmsg_to_cv2(data)
         self.watcher(self.current_cv_rgb_image)
 
@@ -67,7 +68,7 @@ class Blue_Watcher(Node):
                 cv2.drawContours(frame_front, [contour], -1, (0, 255, 0), 2)
         
         pose = [cX_front - 320, - cY_front + 240] # Relativo al centro de la imagen
-        self.get_logger().info('Centro del cuadrado: "%.2f"' % pose[0])
+        self.get_logger().info('Enviando centro del cuadrado: "%.2f"' % pose[0])
         msg = Float64()
         msg.data = float(pose[0])
         self.publisher_.publish(msg)
