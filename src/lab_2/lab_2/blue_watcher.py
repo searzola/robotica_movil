@@ -50,7 +50,7 @@ class Blue_Watcher(Node):
         
         frame_front = frame
         frame_low_front = cv2.GaussianBlur(frame_front, (5, 5), 0)
-        hsv_frame_front = cv2.cvtColor(frame_low_front, cv2.COLOR_BGR2HSV)
+        hsv_frame_front = cv2.cvtColor(frame_low_front, cv2.COLOR_RGB2HSV) #cv2.COLOR_BGR2HSV
         mask_color_front = cv2.inRange(hsv_frame_front, self.lower_color_blue, self.upper_color_blue)
 
         edges_front = cv2.Canny(mask_color_front, 250, 255)
