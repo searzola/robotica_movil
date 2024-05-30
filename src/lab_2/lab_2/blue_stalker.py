@@ -26,6 +26,7 @@ class Blue_Stalker(Node):
         self.publisher_state.publish(msg)
 
     def velocida_angular(self, dato):
+        self.get_logger().info('Se recibe movimiento')
         dato = float(dato.data)
         if dato > 0:
             v_angular = min(0.2, dato)

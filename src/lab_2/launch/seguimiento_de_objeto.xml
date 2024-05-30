@@ -3,7 +3,7 @@
 
 <node pkg="kinect_ros2" exec="kinect_ros2_node" name="kinect_ros2_node_g5" namespace="kinect_g5"/>
 <node pkg="lab_2" exec="angular_pid_controller_node" name="angular_pid_controller" >
-    <param name="kp" value="0.4" />
+    <param name="kp" value="0.04" />
     <param name="ki" value="0.000" />
 </node>
 <node pkg="lab_2" exec="blue_watcher_node" name="blue_watcher" />

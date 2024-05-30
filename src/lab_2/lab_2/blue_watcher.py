@@ -16,11 +16,11 @@ class Blue_Watcher(Node):
     def __init__(self):
         super().__init__('blue_watcher')
         self.publisher_ = self.create_publisher(Float64, '/blue_square_position', 10)
-        self.rgb_sub = self.create_subscription(Image, '/camera/rgb/image_color', self.detector_de_objeto, 10)
+        self.rgb_sub = self.create_subscription(Image, '/kinect_g5/image_raw', self.detector_de_objeto, 10)
         # self.depth_sub = self.create_subscription(Image, '/camera/depth/image_raw', self.depth_cb, 10)
         self.bridge = CvBridge()
         self.current_cv_rgb_image = None                             # 100
-        self.lower_color_blue = np.array([100, 120, 200])     # 100, 120, 200
+        self.lower_color_blue = np.array([100, 120, 100])     # 100, 120, 200
         self.upper_color_blue = np.array([115, 190, 250])    # 115, 190, 250
         self.ver_imagen = True
         self.current_cv_depth_image = None
@@ -31,7 +31,7 @@ class Blue_Watcher(Node):
 
     def depth_cb(self, data):
         # self.get_logger().info('Publishing: "%s"' % data)
-        self.current_cv_depth_image = self.bridge.imgmsg_to_cv2(data)
+        self.current_cv_depth_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
         self.frame = self.current_cv_depth_image
         if self.ver_imagen:
             self.ver_imagen = False
@@ -50,7 +50,7 @@ class Blue_Watcher(Node):
         
         frame_front = frame
         frame_low_front = cv2.GaussianBlur(frame_front, (5, 5), 0)
-        hsv_frame_front = cv2.cvtColor(frame_low_front, cv2.COLOR_RGB2HSV) #cv2.COLOR_BGR2HSV
+        hsv_frame_front = cv2.cvtColor(frame_low_front, cv2.COLOR_BGR2HSV)
         mask_color_front = cv2.inRange(hsv_frame_front, self.lower_color_blue, self.upper_color_blue)
 
         edges_front = cv2.Canny(mask_color_front, 250, 255)
@@ -76,7 +76,7 @@ class Blue_Watcher(Node):
 
 
         hsv_frame_mask_front = cv2.bitwise_and(frame_low_front, frame_low_front, mask=mask_color_front)
-        enemy_txt = cv2.putText(img = self.frame, text = str(pose[0])+","+ str(pose[1]) + "," , org = (pose[0]+320, -(pose[1]-240)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.3, color = (0, 0, 0), thickness = 1)
+        #enemy_txt = cv2.putText(img = self.frame, text = str(pose[0])+","+ str(pose[1]) + "," , org = (pose[0]+320, -(pose[1]-240)), fontFace = cv2.FONT_HERSHEY_DUPLEX, fontScale = 0.3, color = (0, 0, 0), thickness = 1)
 
 
         # cv2.imshow('raw RGB', frame)
