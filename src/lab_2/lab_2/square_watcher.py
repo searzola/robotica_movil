@@ -16,8 +16,8 @@ class Blue_Watcher(Node):
     def __init__(self):
         super().__init__('square_watcher')
         self.publisher_ = self.create_publisher(Float64, '/blue_square_position', 10)
-        #self.rgb_sub = self.create_subscription(Image, '/camera/rgb/image_color', self.detector_de_objeto, 10)
-        self.second_rgb_sub = self.create_subscription(Image, 'blue_square_photos', self.detector_de_objeto, 10)
+        self.rgb_sub = self.create_subscription(Image, '/camera/rgb/image_color', self.detector_de_objeto, 10)
+        #self.second_rgb_sub = self.create_subscription(Image, 'blue_square_photos', self.detector_de_objeto, 10)
         
         self.bridge = CvBridge()
         self.current_cv_rgb_image = None                             # 100
