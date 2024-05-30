@@ -25,15 +25,19 @@ class Blue_Watcher(Node):
         self.path_4 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000550.png")
         self.path_5 = os.path.join("robotica_movil", "src", "lab_2", "lab_2", "blue_square", "frame000640.png")
 
+        self.photo_list = [self.path_1, self.path_2, self.path_3, self.path_4, self.path_5]
+
         time.sleep(2)
-        self.send_pic(self.path_2) # Ir cambiando el path para probar cada posición
+        self.send_pic() # Ir cambiando el path para probar cada posición
 
 
-    def send_pic(self, path):
-        cv_image = cv2.imread(path)
-        self.current_img = self.bridge.cv2_to_imgmsg(cv_image)
-        self.get_logger().info('Enviando foto del cuadrado')
-        self.publisher_.publish(self.current_img)
+    def send_pic(self):
+        for photo in self.photo_list:
+            cv_image = cv2.imread(photo)
+            self.current_img = self.bridge.cv2_to_imgmsg(cv_image)
+            self.get_logger().info('Enviando foto del cuadrado')
+            self.publisher_.publish(self.current_img)
+            time.sleep(4)
         
 
 

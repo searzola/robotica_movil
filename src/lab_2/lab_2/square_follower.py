@@ -21,7 +21,7 @@ class Blue_Follower(Node):
         self.state = float(data.data)
         error = self.reference - self.state
         velocidad = Twist() 
-        if abs(error) < 0.01: # Avanza linealmente
+        if abs(error) < 0.1: # Avanza linealmente
             velocidad.linear.x = self.linear_velocity
             velocidad.angular.z = 0
         else:
@@ -35,7 +35,7 @@ class Blue_Follower(Node):
 
 def main(args=None):
     rclpy.init()
-    blue_stalker = Blue_Follower(kp=0.1)
+    blue_stalker = Blue_Follower(kp=0.05)
     rclpy.spin(blue_stalker)
 
     # Destroy the node explicitly

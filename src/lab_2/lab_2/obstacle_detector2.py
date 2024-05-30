@@ -87,6 +87,14 @@ class Obstacle_Detector2(Node):
                 # msg = Float64()
                 # msg.data = float(self.ref)
                 # self.publisher_ref.publish(msg)
+            #elif xl < 3.8:
+            #    ref = -xl
+            #    if self.ref != 1:
+            #        self.ref = 1
+            #        msg = Float64()
+            #        msg.data = float(self.ref)
+            #        self.publisher_ref.publish(msg)
+
             elif xr == 0.0:
                 # xr = 0.5
                 # ref = xl - 0.1
@@ -118,10 +126,10 @@ class Obstacle_Detector2(Node):
         msg.data = float(ref)
         self.publisher_state.publish(msg)
         self.get_logger().info('Publishing3: xr:"%.2f", xl:"%.2f", ref:"%.2f",state:"%.2f", w:"%.2f"' % (xr, xl,self.ref, ref, self.v_angular))
-        if self.start:
-            self.start = False
-            threat = threading.Thread(target=self.velocidad, daemon=True)
-            threat.start()
+        #if self.start:
+        #    self.start = False
+        #    threat = threading.Thread(target=self.velocidad, daemon=True)
+        #    threat.start()
         
         # coordenadas1 = encontrar_concentracion_baja(self.current_cv_depth_image, tamano_kernel=10)
 
@@ -171,6 +179,11 @@ class Obstacle_Detector2(Node):
         #     v_angular = max(-0.18, dato)
         v_angular = dato
         self.v_angular = v_angular
+        self.velo = 0.2
+        velocidad = Twist()
+        velocidad.linear.x = self.velo
+        velocidad.angular.z = self.v_angular
+        self.publisher_velocity.publish(velocidad)
 
     def velocidad(self):
         while True:
