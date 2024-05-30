@@ -33,7 +33,8 @@ setup(
             "wall_actuation_node = lab_2.wall_actuation:main",
             "square_watcher_node = lab_2.square_watcher:main",
             "square_photos_node = lab_2.square_photos:main",
-            "square_follower_node = lab_2.square_follower:main"
+            "square_follower_node = lab_2.square_follower:main",
+            "obstacle_detector2_node = lab_2.obstacle_detector2:main"
         ],
     },
 )
