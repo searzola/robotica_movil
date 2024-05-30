@@ -41,7 +41,7 @@ class Blue_Watcher(Node):
     def detector_de_objeto(self, data):
         self.current_cv_rgb_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
         self.watcher(self.current_cv_rgb_image)
-        self.get_logger().info('Ejecutando watcher...')
+        #self.get_logger().info('Ejecutando watcher...')
 
     def watcher(self, frame):
         cX_front = 0.0
@@ -69,7 +69,7 @@ class Blue_Watcher(Node):
                 cv2.drawContours(frame_front, [contour], -1, (0, 255, 0), 2)
         
         pose = [cX_front-320, -cY_front+240]
-        self.get_logger().info('Publishing: "%.2f"' % pose[0])
+       # self.get_logger().info('Publishing: "%.2f"' % pose[0])
         msg = Float64()
         msg.data = float(pose[0])
         self.publisher_.publish(msg)

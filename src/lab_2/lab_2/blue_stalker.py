@@ -23,16 +23,15 @@ class Blue_Stalker(Node):
         self.blue_position = float(data.data)
         msg = Float64()
         msg.data = float(self.blue_position)
-        self.get_logger().info('Se recibe movimiento %f' % self.blue_position)
         self.publisher_state.publish(msg)
 
     def velocida_angular(self, dato):
-        self.get_logger().info('Se recibe movimiento')
         dato = float(dato.data)
         if dato > 0:
-            v_angular = min(0.2, dato)
+            v_angular = min(0.4, dato)
         else:
-            v_angular = max(-0.2, dato)
+            v_angular = max(-0.4, dato)
+        self.get_logger().info('V: %f' % v_angular)  
         velocidad = Twist()
         velocidad.linear.x = 0.0
         velocidad.angular.z = v_angular
