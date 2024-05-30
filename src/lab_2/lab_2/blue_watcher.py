@@ -39,7 +39,7 @@ class Blue_Watcher(Node):
             threat.start()
 
     def detector_de_objeto(self, data):
-        self.current_cv_rgb_image = self.bridge.imgmsg_to_cv2(data)
+        self.current_cv_rgb_image = self.bridge.imgmsg_to_cv2(data, desired_encoding="bgr8")
         self.watcher(self.current_cv_rgb_image)
         self.get_logger().info('Ejecutando watcher...')
 
