@@ -13,7 +13,7 @@ class Blue_Follower(Node):
         self.vel_publisher = self.create_publisher(Twist, "/commands/velocity", 10)
         self.reference = 0
         self.kp = kp
-        self.linear_velocity = 0.2
+        self.linear_velocity = 0.0
         self.blue_sub = self.create_subscription(Float64, '/blue_square_position', self.p_controller, 10)
 
     def p_controller(self, data):
