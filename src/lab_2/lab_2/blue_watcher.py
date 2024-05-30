@@ -41,6 +41,7 @@ class Blue_Watcher(Node):
     def detector_de_objeto(self, data):
         self.current_cv_rgb_image = self.bridge.imgmsg_to_cv2(data)
         self.watcher(self.current_cv_rgb_image)
+        self.get_logger().info('Ejecutando watcher...')
 
     def watcher(self, frame):
         self.frame = frame
