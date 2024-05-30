@@ -44,6 +44,8 @@ class Blue_Watcher(Node):
         self.get_logger().info('Ejecutando watcher...')
 
     def watcher(self, frame):
+        cX_front = 0.0
+        cY_front = 0.0
         self.frame = frame
         
         frame_front = frame
