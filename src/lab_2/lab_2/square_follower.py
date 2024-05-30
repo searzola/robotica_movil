@@ -10,7 +10,7 @@ import numpy as np
 class Blue_Follower(Node):
     def __init__(self, kp):
         super().__init__('square_follower')
-        self.vel_publisher = self.create_publisher(Twist, "/cmd_vel_mux/input/navigation", 10)
+        self.vel_publisher = self.create_publisher(Twist, "/commands/velocity", 10)
         self.reference = 0
         self.kp = kp
         self.linear_velocity = 0.2

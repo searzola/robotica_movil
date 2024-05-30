@@ -2,6 +2,7 @@
 <include file="$(find-pkg-share kobuki_node)/launch/kobuki_node-launch.py" />
 
 <node pkg="kinect_ros2" exec="kinect_ros2_node" name="kinect_ros2_node" namespace="kinect"/>
+
 <node pkg="lab_2" exec="square_watcher_node" name="square_watcher" />
 <node pkg="lab_2" exec="square_follower_node" name="square_follower" />
 
