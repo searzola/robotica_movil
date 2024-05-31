@@ -1,5 +1,7 @@
 <launch>
-<node pkg="lab_2" exec="wall_distance_node" name="wall_distance" />
-<node pkg="lab_2" exec="wall_controller_node" name="wall_p_controller" />
-<node pkg="lab_2" exec="wall_actuation_node" name="wall_actuation" />
+<node pkg="lab_2" exec="obstacle_detector2_node" name="obstacle_detector2" />
+<node pkg="lab_2" exec="linear_pid_controller_node" name="linear_pid_controller" >
+    <param name="kp" value="0.8" />
+    <param name="ki" value="0.000" />
+</node>
 </launch>
