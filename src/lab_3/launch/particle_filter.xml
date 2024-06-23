@@ -1,0 +1,20 @@
+<launch>
+
+  <include file="$(find-pkg-share very_simple_robot_simulator)/launch/minimal_simulator_py.xml" >
+    <arg name="initial_x" value="0.5" />
+    <arg name="initial_y" value="0.5" />
+    <arg name="initial_yaw" value="0.0" />
+  </include>
+
+  <node pkg="very_simple_robot_simulator" name="world_state_gui" exec="world_state_gui.py" output="screen" >
+    <param name="map_file" value="$(find-pkg-share particle_filter)/mapa.yaml" />
+  </node>
+
+  <include file="$(find-pkg-share very_simple_robot_simulator)/launch/lidar_simulator.xml" />
+
+ <node pkg="lab_3" exec="simple_particle_pose_changer_node" name="simple_particle_pose_changer" />
+  <node pkg="lab_3" exec="particles_manager_node" name="particles_manager" />
+  <node pkg="lab_3" exec="likelihood_test_node" name="likelihood_test" />
+
+</launch>
+
