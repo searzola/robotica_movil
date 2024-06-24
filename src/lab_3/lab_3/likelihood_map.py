@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 import numpy as np
 from scipy.integrate import quad
 from scipy.optimize import minimize
@@ -8,18 +7,17 @@ import threading
 
 
 class Likelihood_Map():
-    def __init__(self):
-        file_path = 'mapa.pgm'
+    def __init__(self, file_path):
         img = cv2.imread(file_path, cv2.IMREAD_GRAYSCALE)
         self.img = img
         self.resolucion = 0.01
         self.len_img = len(img)
         self.sensor = 0.0
         self.z_max = 4.0/self.resolucion
-        self.zhit = 1.9988322921539572#1.9988322921539572
-        self.sigma2 = 7.022527669350358 #7.022527669350358
-        self.zrand = 2.5243211043472593#2.5243211043472593
-        self.zmaz = 1e-06#1.0#1e-06#1
+        self.zhit = 0.00580658301068736 # 0.00580658301068736#1.9988322921539572 
+        self.sigma2 = 0.82179687436742 #0.82179687436742 #4.792179687436742 
+        self.zrand = 0.0000001243211043472593 #0.0000001243211043472593 # 0.5243211043472593 
+        self.zmaz = 1e-06
         self.datos_buenos = "dato_buenos.csv"
         self.datos_malos = "datos_malos.csv"
         self.img_copy = img.copy()
@@ -59,19 +57,19 @@ class Likelihood_Map():
             contador += 1
             print(f'\r{contador/len(self.puntos_fijos):.2f}%', end="")
 
+
         self.t = normalizar_advanced(self.mapa_T)
         self.min_proba = np.min(self.t)
 
-        # mapa_T_normalizado = cv2.normalize(self.t, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
-        # self.mapa_T = mapa_T_normalizado.astype(np.uint8)
-
+        # mapa_t_normalizado = cv2.normalize(self.t, None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX)
+        # t = mapa_t_normalizado.astype(np.uint8)
         print('\nMapa listo')
         self.ver_imagen = False
         threat = threading.Thread(target=self.ver, daemon=True)
         threat.start()
 
-        # cv2.imshow('mapa_T PGM', self.mapa_T)
-        # cv2.imshow('Imagen PGM', img)
+        # # cv2.imshow('mapa_t PGM', t)
+        # cv2.imshow('Imagen PGM', self.img)
         # cv2.waitKey(0)
 
     def look_especial(self, array_b, array_m):
@@ -95,7 +93,7 @@ class Likelihood_Map():
         x, y = coordenadas
         xf, yf = find_nearest_coordinate(self.puntos_fijos, x, y)
         dis = distancia((x, y), (xf, yf))
-        ####################################
+        #
         x, y, theta, z, z_theta = data
         x = int(round(x/self.resolucion, 0))
         y = self.len_img - int(round(y/self.resolucion, 0))
@@ -132,8 +130,8 @@ class Likelihood_Map():
 
     def look_map(self, data):
         x, y, theta, z, z_theta = data
-        coordenadas = self.calcular_pose_map(x, y, theta, z, z_theta)
-        probabilidad = self.probablidad_mapa(coordenadas)
+        coordenadas, pose = self.calcular_pose_map(x, y, theta, z, z_theta, x_y=True)
+        probabilidad = self.probablidad_mapa(coordenadas, pose=pose, desconcido=True)
         return probabilidad
 
     def params_stimator(self, array_b, array_m):
@@ -155,19 +153,18 @@ class Likelihood_Map():
         datos_malos = np.array(datos_malos)
         datos_malos = np.unique(datos_malos)
         datos = np.concatenate((datos_buenos, datos_malos))
-
         zhit, sigma2, zrand, zmaz = self.Negativa_Log_Verosimilitud(datos, len(datos_buenos), len(datos_malos))
         print("zhit ", zhit)
         print("sigma2 ", sigma2)
         print("zrand ", zrand)
         print("zmaz ", zmaz)
-        safe_csv(self.datos_buenos, datos_buenos.tolist())
-        safe_csv(self.datos_malos, datos_malos.tolist())
+        # safe_csv(self.datos_buenos, datos_buenos.tolist())
+        # safe_csv(self.datos_malos, datos_malos.tolist())
         #####
-        # self.zhit = zhit
-        # self.sigma2 = sigma2
-        # self.zrand = zrand
-        # self.zmaz = zmaz
+        self.zhit = zhit
+        self.sigma2 = sigma2
+        self.zrand = zrand
+        self.zmaz = zmaz
         return
 
     def get_distance(self, data):
@@ -178,7 +175,7 @@ class Likelihood_Map():
         dis = distancia((x, y), (xf, yf))
         return dis
 
-    def calcular_pose_map(self, x, y, theta, z, theta_z):
+    def calcular_pose_map(self, x, y, theta, z, theta_z, x_y=False):
         cos_theta = np.cos(theta)
         sen_theta = np.sin(theta)
         cos_p_z_theta = np.cos(theta + theta_z)
@@ -195,21 +192,40 @@ class Likelihood_Map():
         coordenadas = coordenadas.round(0).astype(np.uint16)
         coordenadas = tuple(coordenadas.T.tolist().pop())
         coordenadas = (self.len_img - coordenadas[1], coordenadas[0])
+        if x_y:
+            pose_x = int(round(pose_x/self.resolucion, 0))
+            pose_y = self.len_img - int(round(pose_y/self.resolucion, 0))
+            return [coordenadas, (pose_y, pose_x)]
         return coordenadas
 
-    def probablidad_mapa(self, coordenadas):
+    def probablidad_mapa(self, coordenadas, pose=(0, 0), desconcido=False):
+        if desconcido and (0 <= pose[0] < 270 and 0 <= pose[1] < 270) and self.img[pose] != 255:
+            return self.min_proba
         x, y = coordenadas
         if 0 <= x < 270 and 0 <= y < 270:
             probabilidad = self.t[coordenadas]
             return probabilidad
         return self.min_proba
 
+    def poses_arrays_probabiliti(self, poses_arrays):
+        list_proba = []
+        for array in poses_arrays:
+            list_proba.append([self.pose_probabiliti(array)])
+        print(list_proba)
+        list_proba = np.array(list_proba)
+        a = list_proba/np.sum(list_proba)
+        return a
+        print(a)
+        print("max: ", np.max(a))
+        print(np.sum(a))
+        # input("ENTER: ")
+
     def Negativa_Log_Verosimilitud(self, data, lb, lm):
         # Parámetros iniciales
         initial_params = [self.zhit, self.sigma2, self.zrand, self.zmaz]
 
         # Limites para los parametros: media puede ser cualquier cosa, sigma debe ser positivo
-        bounds = [(1e-6, None), (1e-6, None), (1e-6, None), (1e-6, None)]
+        bounds = [(1e-20, None), (1e-20, None), (1e-20, None), (1e-20, None)]
 
         # Minimizar la función de negativa log-verosimilitud
         result = minimize(negative_log_likelihood, initial_params, args=(data, self.z_max, lb, lm, ), method='L-BFGS-B', bounds=bounds)
@@ -225,7 +241,7 @@ class Likelihood_Map():
 
 
 def negative_log_likelihood(parametros, z, z_max, lb, lm):
-    weights = np.concatenate((np.ones(lb) * 20, np.ones(lm) * 0.1))
+    weights = np.concatenate((np.ones(lb) * 0.3, np.ones(lm) * 0.000001536))
     zhit, sigma2, zrand, zmaz = parametros
     area, _ = quad(proba, -z_max, z_max, args=(sigma2, z_max, zhit, zrand, zmaz))
     return -np.sum(weights * np.log(proba2(z, sigma2, z_max, zhit, zrand, zmaz, area)))
@@ -238,12 +254,11 @@ def normalizar_advanced(mapa_g):
     max_val = np.max(mapa_g) + std_val
     mapa_g_normalizado = (mapa_g - min_val) / (max_val - min_val)
     print(f'Normalizacion ESPECISL: min: {np.min(mapa_g_normalizado)}, max: {np.max(mapa_g_normalizado)}')
-    mapa_N_sum = mapa_g / np.sum(mapa_g)
+    mapa_N_sum = mapa_g / (np.sum(mapa_g))*1000
     print(f'Normalizacion SUMA: min: {np.min(mapa_N_sum)}, max: {np.max(mapa_N_sum)}')
-    mapa_N_softmax = softmax(mapa_g, 0.5)   # 0.5 bueno     #0.1 mucho mas extremo
+    mapa_N_softmax = softmax(mapa_g, 1.0)*100   # 0.5 bueno     #0.1 mucho mas extremo
     print(f'Normalizacion SOFTMAX: min: {np.min(mapa_N_softmax)}, max: {np.max(mapa_N_softmax)}')
-    # Aun no se cual usar
-    return mapa_g_normalizado
+    return mapa_N_sum
 
 
 def softmax(x, temperature=1.0, axis=None):
@@ -256,11 +271,18 @@ def softmax(x, temperature=1.0, axis=None):
     return exps / sum_exps
 
 
+def log_softmax(x, axis=0, temperature=1.0):
+    x_adjusted = x / temperature
+    shifted_logits = x_adjusted - np.max(x_adjusted, axis=axis, keepdims=True)
+    log_sum_exps = np.log(np.sum(np.exp(shifted_logits), axis=axis, keepdims=True))
+    return shifted_logits - log_sum_exps
+
+
 def gaussian_2Vd(z, sigma2, z_max, zhit):
     coef = 1 / np.sqrt(2 * np.pi * sigma2)
     exponent = -(z**2) / (2 * sigma2)
     gaussian = zhit*(coef * np.exp(exponent))
-    gaussian[z > z_max] = 0.0  # Aplicar la condición
+    gaussian[z > z_max] = 0.0
     return gaussian
 
 
@@ -285,7 +307,6 @@ def proba(z, sigma2, z_max, zhit, zrand, zmaz):
 
 
 def proba2(z, sigma2, z_max, zhit, zrand, zmaz, area):
-    # weights = np.concatenate((np.ones(50) * 10, np.ones(50) * 0.1))
     p_gausian = gaussian_2Vd(z, sigma2, z_max, zhit)
     p_prand = p_randV(z, z_max, zrand)
     p_max = p_z_maxV(z, z_max, zmaz)
@@ -352,10 +373,10 @@ def safe_csv(nombre, datos):
             guardar.write("\n")
 
 
+
+
 def main(args=None):
-    # Para probar cosas
     mapa = Likelihood_Map()
-    # mapa.calcular_mapa()
     pass
 
 
