@@ -15,6 +15,7 @@
  <node pkg="lab_3" exec="simple_particle_pose_changer_node" name="simple_particle_pose_changer" />
   <node pkg="lab_3" exec="particles_manager_node" name="particles_manager" />
   <node pkg="lab_3" exec="likelihood_test_node" name="likelihood_test" />
+   <node pkg="lab_3" exec="reactive_movement_node" name="reactive_movement" />
 
 </launch>
 

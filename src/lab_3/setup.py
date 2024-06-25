@@ -25,7 +25,8 @@ setup(
             "likelihood_map_node = lab_3.likelihood_map:main",
             "likelihood_test_node = lab_3.likelihood_test:main",
             "simple_particle_pose_changer_node = lab_3.simple_particle_pose_changer:main",
-            "particles_manager_node = lab_3.particles_manager:main"
+            "particles_manager_node = lab_3.particles_manager:main",
+            "reactive_movement_node = lab_3.reactive_movement:main"
         ],
     },
 )
