@@ -1,0 +1,8 @@
+<launch>
+    <node pkg="my_first_packege" exec="robot_reactivo_test_C" name="robot_reactivo_test_C" >
+        <param name="file_path" value="ros2_ws/src/my_first_packege/my_first_packege/mapa.pgm" />
+    </node>
+    <node pkg="my_first_packege" exec="localizacion_test_C" name="localizacion_test_C" >
+            <param name="ruta" value="ros2_ws/src/my_first_packege/my_first_packege/" />
+    </node>
+</launch>
