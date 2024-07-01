@@ -87,6 +87,9 @@ class ParticlesManager( Node ):
         self.sigma = 0.01
         self.particles = []
         self.pub_particles = self.create_publisher(PoseArray, 'particles', 10 )
+        self.real_pose_sub = self.create_subscription(Pose, '/real_pose', self.read_real_pose, 10)
+        self.pose_real = []
+        self.pose_real_actualizada = False
         self.dic_particles = {}
         self.depth_sub = self.create_subscription(LaserScan, '/scan', self.depth_cb2, 10)
         self.particulas_movidas = True
@@ -97,7 +100,7 @@ class ParticlesManager( Node ):
         self.interaction = True
         self.mcl_pub = self.create_publisher(Float64, 'MCL', 10)
         self.react_sub = self.create_subscription(Bool, "reactive", self.señal_run, 10)
-        self.time = 5.0
+        self.time = 1.0
         self.max_weight = 0
 
     def create_particles( self, range_x, range_y, numero, add=True ):
@@ -145,8 +148,9 @@ class ParticlesManager( Node ):
 
     def depth_cb2(self, data):
         ranges = np.array(data.ranges)[62:-62]
-        if self.particulas_movidas and self.particles != [] and self.read_first_pose:
+        if self.particulas_movidas and self.particles != [] and self.read_first_pose and self.pose_real_actualizada:
             self.likelihood_map.img_copy = self.likelihood_map.img.copy()
+            self.pose_real_actualizada = False
             self.particulas_movidas = False
             particulas_unique = list(set(self.particles))
             for particle in particulas_unique:
@@ -169,24 +173,71 @@ class ParticlesManager( Node ):
 
     def normalizar_particulas(self):
         values = list(self.dic_particles.values())
-        weights = np.array(list(map(lambda x: x.weight, values)))
+        valu = list(filter(lambda x: x.weight != 0.0, values))
+        weights = np.array(list(map(lambda x: x.weight, valu)))
         weights_array = weights/np.sum(weights)
         self.max_weight = np.max(weights_array)
-        for ele in values:
-            ele.weight = ele.weight/np.sum(weights)
+        weights = softmax(weights_array).tolist()
+        for ele in valu:
+            ele.weight = weights.pop(0)
 
     def new_sample(self):
         values = np.array(list(self.dic_particles.values()))
         weights = np.array(list(map(lambda x: x.weight, values)))
         keys = np.array(list(self.dic_particles.keys()))
-        sample = np.random.choice(keys, p=weights, size=self.num_particles)
+        sample = np.random.choice(keys, p=weights, size=self.num_particles, replace=True) # Puedo escoger más de una vez una partìcula
+        # Tengo que ver una forma de poder copiar partículas con un buen peso
+
+        # self.sample_list = sample.tolist()
+        # self.particles = []
+        # print(len(set(self.sample_list)))
+
+
+        # # Crear copias de cada partícula y agregarlas a una nueva lista
+        # for i in list(self.sample_list):#range(len(list(set(self.sample_list)))):
+        #     particula_actual = self.dic_particles[i]#self.sample_list[i]
+        #     if i not in self.particles:
+        #         self.particles.append(i)
+        #         continue
+        #     # print("actual ",particula_actual)
+        #     new_particle = Particle(x=particula_actual.x, y=particula_actual.y, ang=particula_actual.ang)
+        #     # print("new ",new_particle)
+        #     self.dic_particles[str(new_particle.id)] = new_particle
+        #     self.particles.append(str(new_particle.id))
+        #sample = np.random.choice(keys, p=weights, size=self.num_particles)
         self.particles = sample.tolist()
-        # print("CANTIDAD DE PARTICULAS VIVAS ", len(list(set(self.particles))))
-        self.get_logger().info("CANTIDAD DE PARTICULAS VIVAS  %.2f" % len(list(set(self.particles))))
-        if len(list(set(self.particles))) < int(self.num_particles*0.05):
-            #print("POCAS PARTICULAS ", len(list(set(self.particles))), "INYECTAR PARTICULAS")
-            self.create_particles(self.range_x, self.range_y, int(self.num_particles*0.1), add=True)
-            self.get_logger().info("POCAS PARTICULAS: INYECTAR %.2f PARTICULAS" % int(self.num_particles*0.1))
+        var_x, var_y = self.calcular_incertidumbre(list(set(self.particles)))
+        cx, cy, ctheta = self.calcular_pose_convergencia(list(set(self.particles)))
+        rx, ry, rtheta = self.pose_real
+        print(self.pose_real)
+        print("dx: ", rx - cx)
+        print("dy: ", ry - cy)
+        print("dtheta: ", rtheta - ctheta)
+        print("CANTIDAD DE PARTICULAS VIVAS ", len(list(set(self.particles))), " de ", len(self.particles))
+        if len(list(set(self.particles))) < int(self.num_particles*0.1):
+            print("POCAS PARTICULAS ", len(list(set(self.particles))), "INYECTAR PARTICULAS")
+            # self.sample_list = sample.tolist()
+            # self.particles = []
+            # print(len(set(self.sample_list)))
+
+
+            # # Crear copias de cada partícula y agregarlas a una nueva lista
+            # for i in list(self.sample_list):#range(len(list(set(self.sample_list)))):
+            #     particula_actual = self.dic_particles[i]#self.sample_list[i]
+            #     if i not in self.particles:
+            #         self.particles.append(i)
+            #         continue
+            #     # print("actual ",particula_actual)
+            #     new_particle = Particle(x=particula_actual.x, y=particula_actual.y, ang=particula_actual.ang)
+            #     # print("new ",new_particle)
+            #     self.dic_particles[str(new_particle.id)] = new_particle
+            #     self.particles.append(str(new_particle.id))
+            #     # if var_x < 0.01 and var_y < 0.01:
+            rango_x = [max(cx-0.5,0), min(cx+0.5, 2.7)]
+            rango_y = [max(cy-0.5,0), min(cy+0.5, 2.7)]
+            self.create_particles(rango_x, rango_y, int(self.num_particles*0.3), add=True)
+            # else:
+            self.create_particles(self.range_x, self.range_y, int(self.num_particles*0.7), add=True)
 
     def read_odom_pose(self, odom_pose):
         x = odom_pose.pose.pose.position.x
@@ -207,6 +258,71 @@ class ParticlesManager( Node ):
     def señal_run(self, data):
         self.interaction = False
         pass
+
+    def calcular_incertidumbre(self, list_particulas):
+        part = list(map(lambda x: self.dic_particles[x].pos(), list_particulas))
+        particulas = np.array(part)
+        # Calcular la media de las partículas
+        media_x = np.mean(particulas[:, 0])
+        media_y = np.mean(particulas[:, 1])
+        media_theta = np.mean(particulas[:, 2])
+
+        # Calcular la varianza de las partículas
+        var_x = np.var(particulas[:, 0])
+        var_y = np.var(particulas[:, 1])
+        var_theta = np.var(particulas[:, 2])
+
+        print('media_x: ', media_x)
+        print('media_y: ', media_y)
+        print('media_theta: ', media_theta)
+        print('var_x: ', var_x)
+        print('var_y: ', var_y)
+        print('var_theta: ', var_theta)
+
+        incertidumbre = {
+            'media_x': media_x,
+            'media_y': media_y,
+            'media_theta': media_theta,
+            'var_x': var_x,
+            'var_y': var_y,
+            'var_theta': var_theta
+        }
+        # return incertidumbre
+        return [var_x, var_y]
+
+    def calcular_pose_convergencia(self, list_particulas):
+        part = list(map(lambda x: self.dic_particles[x].pos(), list_particulas))
+        particulas = np.array(part)
+        weights = list(map(lambda x: self.dic_particles[x].weight, list_particulas))
+        probabilidades = np.array(weights)
+
+        # Calcular la media ponderada
+        media_x = (np.sum(particulas[:, 0] * probabilidades)) / np.sum(probabilidades)
+        media_y = (np.sum(particulas[:, 1] * probabilidades)) / np.sum(probabilidades)
+        media_theta = (np.sum(particulas[:, 2] * probabilidades)) / np.sum(probabilidades)
+
+        print('x: ', media_x)
+        print('y: ', media_y)
+        print('theta: ', media_theta)
+
+        pose_convergencia = {
+            'x': media_x,
+            'y': media_y,
+            'theta': media_theta
+        }
+        # return pose_convergencia
+        return [media_x, media_y, media_theta]
+    
+    def read_real_pose(self, real_pose):
+        x = real_pose.position.x
+        y = real_pose.position.y
+        z = real_pose.position.z
+        roll, pitch, yaw = euler_from_quaternion((real_pose.orientation.x,
+                                                    real_pose.orientation.y,
+                                                    real_pose.orientation.z,
+                                                    real_pose.orientation.w))
+        self.pose_real = [x, y, yaw]
+        self.pose_real_actualizada = True
 
 
 def softmax(x, temperature=1.0, axis=None):
