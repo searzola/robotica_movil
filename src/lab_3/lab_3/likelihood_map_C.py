@@ -16,9 +16,9 @@ class Likelihood_Map():
         self.len_img = len(img)
         self.sensor = 0.0
         self.z_max = 4.0/self.resolucion
-        self.zhit = 1.6431780031955348
-        self.sigma2 = 4.526851644873162
-        self.zrand = 0.19015589942965507
+        self.zhit = 5.327786164740783
+        self.sigma2 = 1.479256698286517
+        self.zrand = 1e-06
         self.zmaz = 1e-06
         self.img_copy = img.copy()
 
