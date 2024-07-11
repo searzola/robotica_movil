@@ -12,6 +12,7 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, glob('launch/*.xml')),
+        ('share/' + package_name, glob('config/*.yaml'))
     ],
     install_requires=['setuptools'],
     zip_safe=True,

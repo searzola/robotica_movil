@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 from glob import glob
 
-package_name = 'lab_3'
+package_name = 'proyecto_grupo_5_2024'
 
 setup(
     name=package_name,
@@ -12,6 +12,10 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name, glob('launch/*.xml')),
+        ('share/' + package_name, glob('*.yaml')),
+        ('share/' + package_name, glob('*.pgm')),
+        ('share/' + package_name, glob('config/*.rviz')),
+        ('share/' + package_name, glob('params/*.yaml')),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -22,13 +26,6 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "likelihood_map_node = lab_3.likelihood_map:main",
-            "likelihood_test_node = lab_3.likelihood_test:main",
-            "simple_particle_pose_changer_node = lab_3.simple_particle_pose_changer:main",
-            "particles_manager_node = lab_3.particles_manager:main",
-            "reactive_movement_node = lab_3.reactive_movement:main",
-            "robot_reactivo_test_C = lab_3.robot_reactivo_test_C:main",
-            "localizacion_test_C = lab_3.localizacion_test_C:main"
         ],
     },
 )
