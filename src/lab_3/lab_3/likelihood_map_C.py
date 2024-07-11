@@ -16,10 +16,17 @@ class Likelihood_Map():
         self.len_img = len(img)
         self.sensor = 0.0
         self.z_max = 4.0/self.resolucion
+<<<<<<< HEAD
         self.zhit = 1.09
         self.sigma2 = 1.1
         self.zrand = 0.09
         self.zmaz = 1e-07
+=======
+        self.zhit = 5.327786164740783
+        self.sigma2 = 1.479256698286517
+        self.zrand = 1e-06
+        self.zmaz = 1e-06
+>>>>>>> f0a220e14e8366261e894bfa1ecbd07a75521e1d
         self.img_copy = img.copy()
 
         self.mapa_T = np.zeros_like(img, dtype=np.float64)
